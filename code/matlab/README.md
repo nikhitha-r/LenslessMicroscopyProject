@@ -1,6 +1,6 @@
 # matlab code + example from the paper An automatic method for robust and fast cell detection in bright field images from high-throughput microscopy
 
-![alt text](https://gitlab.lrz.de/dilabmllensfreeimaging/matlab/raw/master/HeLaCell_image_segmentation.png)
+![alt text](https://gitlab.lrz.de/dilabmllensfreeimaging/cellcoveredareadetection/raw/master/code/matlab/HeLaCell_image_segmentation.png)
 
   * run exampleSegmentation.m
 
