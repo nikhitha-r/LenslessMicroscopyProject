@@ -9,8 +9,8 @@ function [] = exapmleSegmentation(arg1)
         arg1 = '2' %default 
     end
     display(arg1)
-    direc = dir('/home/aravind/Desktop/Maha/IDP/DI_Lab/code/data/test_data_00_39/');
-    save_direc = '/home/aravind/Desktop/Maha/IDP/DI_Lab/code/data/test_data_mask/';
+    direc = dir('directory_path_to_images');
+    save_direc = 'directory_path_to_save_masks';
    
     for file = direc'
         if endsWith(file.name, '.png')
