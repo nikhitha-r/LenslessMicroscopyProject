@@ -8,7 +8,7 @@ function [] = exapmleSegmentation(arg1)
     if nargin == 0 
         arg1 = '2' %default 
     end
-    display(arg1)
+    
     direc = dir('directory_path_to_images');
     save_direc = 'directory_path_to_save_masks';
    
