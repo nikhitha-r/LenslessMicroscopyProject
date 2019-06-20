@@ -1,9 +1,24 @@
-import tensorflow as tf
 from tensorflow import keras
 
 class UNet:
-    def __init__(self):
-        pass
+    def __init__(self,
+                 input_shape=(224,224,3),
+                 batch_size=32,
+                 filters=[64, 128, 256, 512, 1024],
+                 activation='sigmoid',
+                 dropout=0.5):
+        self.input_shape = input_shape
+        self.batch_size = batch_size
+        self.filters = filters
+        self.activation = activation
+        self.dropout = dropout
+        self.model = None
+
+    def summary(self):
+        return self.model.summary()
+
+    def load_weights(self, weights):
+        self.model.load_weights(weights)
 
     def down_block(self, x, filters, kernel_size=(3, 3), padding="same", strides=1, dropout=False):
         c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu", kernel_initializer="he_normal")(x)
@@ -27,10 +42,10 @@ class UNet:
             c = keras.layers.Dropout(0.5)(c)
         return c
 
-    def build_unet_model(self, pretrained_weights=None, input_size=(256, 256, 1)):
+    def build_unet_model(self):
         #TO TRY : Try with smaller kernels and smaller image size ==> 128*128 and f = [16, 32, 64, 128, 256]
-        f = [64, 128, 256, 512, 1024]
-        inputs = keras.layers.Input((input_size))
+        f = self.filters
+        inputs = keras.layers.Input(shape=self.input_shape, batch_size=self.batch_size)
 
         p0 = inputs
         c1, p1 = self.down_block(p0, f[0])  # 256 -> 128
@@ -49,15 +64,6 @@ class UNet:
         #u4 = keras.layers.Conv2D(2, 3, padding="same", activation="relu", kernel_initializer="he_normal")(u4)
 
         outputs = keras.layers.Conv2D(1, (1, 1), padding="same", activation="sigmoid")(u4)
-        model = keras.models.Model(inputs, outputs)
+        self.model = keras.models.Model(inputs, outputs)
 
-        #TO TRY : RMSProp?, learning rate
-        model.compile(optimizer=keras.optimizers.Adam(lr=1e-4), loss='binary_crossentropy', metrics=['accuracy'])
-
-        #Dispay the architecture
-        model.summary()
-
-        if pretrained_weights:
-            model.load_weights(pretrained_weights)
-
-        return model
+        return self.model
