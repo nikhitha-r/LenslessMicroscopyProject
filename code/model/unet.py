@@ -45,7 +45,7 @@ class UNet:
     def build_unet_model(self):
         #TO TRY : Try with smaller kernels and smaller image size ==> 128*128 and f = [16, 32, 64, 128, 256]
         f = self.filters
-        inputs = keras.layers.Input(shape=self.input_shape, batch_size=self.batch_size)
+        inputs = keras.layers.Input(shape=self.input_shape)
 
         p0 = inputs
         c1, p1 = self.down_block(p0, f[0])  # 256 -> 128
