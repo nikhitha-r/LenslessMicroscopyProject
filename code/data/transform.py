@@ -16,10 +16,10 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument('--imagepath',
                         help='the path pattern for image files',
-                        default='**/denoised/**/*.png')
+                        default='**/images/**/*.png')
     parser.add_argument('--annotationpath',
                         help='the path pattern for annotation files',
-                        default='**/masks/**/*.png')
+                        default='**/annotations/**/*.png')
     parser.add_argument('--seed',
                         help='the seed for the train/eval/test split',
                         type=int,
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         # set up directory
         img_path = pathlib.Path(path.joinpath('images'))
         img_path.mkdir(parents=True)
-        ann_path = pathlib.Path(path.joinpath('masks'))
+        ann_path = pathlib.Path(path.joinpath('annotations'))
         ann_path.mkdir()
 
         for i in range(len(data.get(folder))):
