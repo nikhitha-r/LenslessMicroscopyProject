@@ -1,0 +1,122 @@
+####################### Documentation on how to use the P100 Virtual Server #################
+#Sections:
+# Reservation
+# Log in
+# Preparations outside of the docker container
+# Inside the docker container
+# Copying results
+# Troubleshooting
+
+# the lines without # at the beginning are to be entered into the terminal
+
+##################### Reservation ######################################
+# Make the reservations via datalab.srv.lrz.de
+# You have to put you public SSH key in the profile info
+# You can book reservations directly one after the other ('chaining') 
+# and the VM and the scripts you are running will continue.
+
+
+##################### Log in ######################################
+# Once the machine is ready (about 3 min after the reservation time) you get an email with the login info.
+# it looks like this: ssh ubuntu@10.155.47.236 (different IP address for you)
+# run this command in the terminal. you may be asked to add the fingerprint to the known hosts, do that
+# Normally, this should be it, you are logged onto the server.
+
+# For how to deal with the 'man-in-the-middle-attack' error, see the troubleshooting 1.1
+
+##################### Preparations outside of the docker container ######################################
+# Now we can start prepare the machine. Essentially we have 3 tasks: 
+# start byobu, prepare the docker image and make the data accessible.
+
+# 1) start byobu
+byobu
+# In byobu, you can open several windows. Most of the time, I use 2-3 windows later on 
+# (one inside the docker, one or two outside)
+# For this, press F2, the other window opens. To navigate between the windows, press F3.
+# To exit byobu, press F6. 
+# The byobu session (with all the windows) stays alive until you enter byobu again 
+# (by running the command byobu)
+# When you have exited byobu, you are still on the server. 
+# to exit the server, type exit. Later, you can log in again and type byobu to continue with the session.
+# Don't exit byobu by typing exit because the session will be lost.
+# Maybe try this out once or twice to get comfortable with byobu.
+
+# 2) prepare and run the docker image data
+# For this, I wrote the get_docker_script (now not runnable, edit to your needs)
+# It's logging into the nvidia docker cloud, pulling a docker image and running is.
+# After the script has ended, you'll be inside the docker container
+
+# for logging into the Nvidia docker cloud, enter:
+# username and password from https://ngc.nvidia.com (password is the API key you generate there)
+
+# 3) get the data 
+# you can do this simultaneously to (2), in a seperate byobu window
+# For this, I wrote the get_data script (now not runnable, edit to your needs)
+# it installs sshfs, mounts a remote directory (e.g. DSS) and copied the data to the local storage
+
+# In the first few minutes, the package manager is locked, 
+# that means you can't install anything and the script will fail. 
+# If that happens, you have to wait and try again later 
+# I have had wait times of 5 to 35 minutes
+
+
+##################### Inside the docker container ######################################
+# Now we have to prepare the inside of the docker container
+# Edit the prepare_docker.sh script (now not runnable) and requirements.txt to install additional modules
+
+# After that, you can start training (e.g. python3 trainer/trainer_file.py)
+# Remember to check all trainer settings (augmentation, single sample, batch size etc
+# and the data_loader path
+
+
+##################### Copying results ######################################
+# while the training is going on, you can consider how you want to copy the results in the reports directory.
+# we have to do this because inside the docker container we only have access to the local storage, not to the mounted storage 
+
+# you can do so manually or via a script that copies the result automatically every 20min
+# First, if you are in the byobu window that is inside the docker container, change to a different one.
+# and go inside the reports directory
+
+# a) manually
+cp -r /ssdtemp/[LOCAL_PATH] /ssdtemp/[MOUNTED_PATH]
+
+# b) automatically
+# edit the copy_results.sh script (now not runnable) to your needs and run it.
+
+##################### Troubleshooting ######################################
+# 1) During Login
+# 1.1 Man-in-the-middle-attack-error: 
+# I don't know if this is the correct way to deal with this situation, but it worked for me:
+# go to your local .ssh directory and delete everything inside the known_hosts file 
+# (maybe before that, make a backup copy of the file somewhere else)
+# try again to log in
+
+# 2) sshfs stuff
+# 2.1 connection reset by peer
+# This happened to me once when I was mounting a lot in a debugging process.
+# I got out of the situation by rebooting the server (sudo reboot)
+# However please note, that everything on the server will be lost and you have to start over
+
+# 3) Docker stuff
+# 3.1 exiting docker
+# Normally, you don't have to exit the docker container because you can have multiple byobu windows
+# and can do stuff outside the container in one of those windows.
+# If you REALLY have to exit docker, type exit. 
+# Please note, that the container will vanish, 
+# you have to run it again and also install the requirements again.
+# If you don't want the container to vanish, you can remove the --rm option in the run command 
+
+# 3.2 python inside the container
+# For debugging purposes it can be necessary to open a python shell. do so by typing python3.
+
+# 4) Reports
+# 4.1 deleting report directories
+# Often I have to debug on the server 
+# and thus execute a trainer file multiple times before actually starting a serious train run. 
+# In all of these preliminary runs, report directories are created. 
+# Since the files are getting big, I don't want to copy all of that to the permanent storage.
+# Therefore I delete the report directories when I'm done debugging 
+# and start the automatic result copy script afterward.
+# remove a report directory via: 
+sudo rm -rf thepath
+# thepath being the absolute or relative path of the report directory to be deleted.
