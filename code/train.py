@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     model.compile(optimizer=tf.train.AdamOptimizer(args.learning_rate),
                   loss=loss,
-                  metrics=['accuracy'])
+                  metrics=[tf.keras.metrics.Precision(), tf.keras.metrics.Recall()])
 
     cptp_op = tf.keras.callbacks.ModelCheckpoint(
         filepath=os.path.join(args.save_dir, 'cpts'), save_best_only=True,
