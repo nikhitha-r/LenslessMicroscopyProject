@@ -2,11 +2,13 @@
 
 import os
 import argparse
+import pathlib
 import json
-
+import numpy as np
 import tensorflow as tf
 from data.pipeline import input_pipeline
 from model.unet import UNet
+from utils.loss import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -27,7 +29,7 @@ if __name__ == '__main__':
 
     # Model
     parser.add_argument('-m', '--model', type=str, required=True,
-                        choices=['resnet', 'vgg', 'unet'])
+                        choices=['unet'])
     parser.add_argument('-f', '--filters', type=int, nargs='+',
                         default=(64, 128, 256, 512, 1024),
                         help='the number of filters per block, the last filter'
@@ -37,13 +39,13 @@ if __name__ == '__main__':
                         help='the kernel size of each convolutional operation'
                              'in each block (UNet only)')
     parser.add_argument('--loss', type=str, default='mse',
-                        choices=['mse', 'mae', 'binary_crossentropy'],
+                        choices=['mse', 'mae', 'binary_crossentropy', 'dice_coeff', 'bce_dice'],
                         help='the loss function')
     parser.add_argument('-cw', '--class-weight', type=float, default=None,
                         help='The class weight for binary crossentropy')
 
     # Specs
-    parser.add_argument('-l', '--learning_rate', type=float, default=1e-4,
+    parser.add_argument('-l', '--learning_rate', type=float, default=1e-5,
                         help='Adam learning rate')
     parser.add_argument('-b', '--batch_size', type=int, default=32,
                         help='Batch size during training.')
@@ -79,7 +81,6 @@ if __name__ == '__main__':
     # model setup
     if args.model in ('unet',):
         model = UNet(input_shape=(224, 224, args.channels),
-                     batch_size=args.batch_size,
                      filters=args.filters,
                      dropout=args.drop_prob).build_unet_model()
     else:
@@ -88,7 +89,12 @@ if __name__ == '__main__':
     if args.weight_file is not None:
         model.load_weights(args.weight_file)
 
-    loss = args.loss
+    if args.loss == 'dice_coeff':
+        loss = dice_coeff_loss()
+    elif args.loss == 'bce_dice':
+        loss = bce_dice_loss()
+    else:
+        loss = args.loss
 
     model.compile(optimizer=tf.train.AdamOptimizer(args.learning_rate),
                   loss=loss,
@@ -99,7 +105,7 @@ if __name__ == '__main__':
         verbose=1, period=args.eval_interval)
     tboard_op = tf.keras.callbacks.TensorBoard(
         log_dir=os.path.join(args.save_dir, 'logs'), histogram_freq=1,
-        write_graph=False, write_images=False, update_freq='epoch',
+        write_graph=False, write_images=False, update_freq='batch',
         batch_size=args.batch_size)
 
     # Print here so its after the TensorFlow warnings
@@ -109,8 +115,10 @@ if __name__ == '__main__':
     model.summary()
 
     model.fit(
-        train_data, validation_data=eval_data, batch_size=args.batch_size, epochs=args.epochs,
+        train_data, validation_data=eval_data, epochs=args.epochs,
         steps_per_epoch=args.epoch_steps, validation_steps=args.val_steps,
         callbacks=[cptp_op, tboard_op])
 
     model.save(os.path.join(args.save_dir, '{}.h5'.format(args.model)))
+
+    data_dir = pathlib.Path(args.data_dir)
