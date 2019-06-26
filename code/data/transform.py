@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # train-eval-test split
     # TODO: change split from fixed to variable
     train = random.sample(paths, int(0.7 * len(paths)))
-    val = random.sample(list(set(paths) - set(train)), int(0.1 * len(paths)))
+    val = random.sample(list(set(paths) - set(train)), int(0.15 * len(paths)))
     test = list(set(paths) - set(train) - set(val))
 
     data = {'train': train, 'eval': val, 'test': test}
