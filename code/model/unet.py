@@ -4,7 +4,7 @@ class UNet:
     def __init__(self,
                  input_shape=(224,224,3),
                  batch_size=32,
-                 filters=[64, 128, 256, 512, 1024],
+                 filters=(64, 128, 256, 512, 1024),
                  activation='sigmoid',
                  dropout=0.5):
         self.input_shape = input_shape
