@@ -21,8 +21,8 @@ class UNet:
         self.model.load_weights(weights)
 
     def down_block(self, x, filters, kernel_size=(3, 3), padding="same", strides=1, dropout=False):
-        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu", kernel_initializer="he_normal")(x)
-        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu", kernel_initializer="he_normal")(c)
+        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu")(x)
+        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu")(c)
         if dropout:
             c = keras.layers.Dropout(0.5)(c)
         p = keras.layers.MaxPool2D((2, 2), (2, 2))(c)
@@ -31,13 +31,13 @@ class UNet:
     def up_block(self, x, skip, filters, kernel_size=(3, 3), padding="same", strides=1):
         us = keras.layers.UpSampling2D((2, 2))(x)
         concat = keras.layers.Concatenate()([us, skip])
-        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu", kernel_initializer="he_normal")(concat)
-        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu", kernel_initializer="he_normal")(c)
+        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu")(concat)
+        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu")(c)
         return c
 
     def bottleneck(self, x, filters, kernel_size=(3, 3), padding="same", strides=1, dropout=False):
-        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu", kernel_initializer="he_normal")(x)
-        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu", kernel_initializer="he_normal")(c)
+        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu")(x)
+        c = keras.layers.Conv2D(filters, kernel_size, padding=padding, strides=strides, activation="relu")(c)
         if dropout:
             c = keras.layers.Dropout(0.5)(c)
         return c
@@ -48,20 +48,20 @@ class UNet:
         inputs = keras.layers.Input(shape=self.input_shape)
 
         p0 = inputs
-        c1, p1 = self.down_block(p0, f[0])  # 256 -> 128
-        c2, p2 = self.down_block(p1, f[1])  # 128 -> 64
-        c3, p3 = self.down_block(p2, f[2])  # 64 -> 32
-        c4, p4 = self.down_block(p3, f[3], dropout=True)  # 32->16
+        c1, p1 = self.down_block(p0, f[0], dropout=True)
+        c2, p2 = self.down_block(p1, f[1], dropout=True)
+        c3, p3 = self.down_block(p2, f[2], dropout=True)
+        c4, p4 = self.down_block(p3, f[3], dropout=True)
 
         bn = self.bottleneck(p4, f[4], dropout=True)
 
-        u1 = self.up_block(bn, c4, f[3])  # 16 -> 32
-        u2 = self.up_block(u1, c3, f[2])  # 32 -> 64
-        u3 = self.up_block(u2, c2, f[1])  # 64 -> 128
-        u4 = self.up_block(u3, c1, f[0])  # 128 -> 256
+        u1 = self.up_block(bn, c4, f[3])
+        u2 = self.up_block(u1, c3, f[2])
+        u3 = self.up_block(u2, c2, f[1])
+        u4 = self.up_block(u3, c1, f[0])
 
         #TO TRY : Check if this layer is helpful
-        #u4 = keras.layers.Conv2D(2, 3, padding="same", activation="relu", kernel_initializer="he_normal")(u4)
+        #u4 = keras.layers.Conv2D(2, 3, padding="same", activation="relu")(u4)
 
         outputs = keras.layers.Conv2D(1, (1, 1), padding="same", activation="sigmoid")(u4)
         self.model = keras.models.Model(inputs, outputs)
