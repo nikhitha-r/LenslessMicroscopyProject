@@ -69,7 +69,8 @@ if __name__ == '__main__':
     if args.weight_file is not None:
         model.load_weights(args.weight_file)
 
-    model.compile(optimizer=tf.train.AdamOptimizer())
+    loss = dice_coeff_loss()
+    model.compile(optimizer=tf.train.AdamOptimizer(1e-5), loss=loss)
 
     data_dir = pathlib.Path(args.data_dir)
 
@@ -93,17 +94,17 @@ if __name__ == '__main__':
         test_img, _ = test_set.get_next()
         celltype = path.split("_")
         if(len(celltype) > 2):
-            if celltype[0] == '3T3' & celltype[1] == 'pos0':
+            if celltype[0] == '3T3' and celltype[1] == 'pos0':
                 img_shape = constants.T3_pos0
-            elif celltype[0] == '3T3' & celltype[1] == 'pos1':
+            elif celltype[0] == '3T3' and celltype[1] == 'pos1':
                 img_shape = constants.T3_pos1
-            elif celltype[0] == 'A549' & celltype[1] == 'pos0':
+            elif celltype[0] == 'A549' and celltype[1] == 'pos0':
                 img_shape = constants.A549_pos0
-            elif celltype[0] == 'Hela' & celltype[1] == 'pos0':
+            elif celltype[0] == 'Hela' and celltype[1] == 'pos0':
                 img_shape = constants.HeLa_pos0
-            elif celltype[0] == 'Hela' & celltype[1] == 'pos1':
+            elif celltype[0] == 'Hela' and celltype[1] == 'pos1':
                 img_shape = constants.HeLa_pos1
-            elif celltype[0] == 'Huh' & celltype[1] == 'pos0':
+            elif celltype[0] == 'huh' and celltype[1] == 'pos0':
                 img_shape = constants.Huh_pos0
             else:
                 raise Exception("Wrong file path")
