@@ -69,9 +69,6 @@ if __name__ == '__main__':
     if args.weight_file is not None:
         model.load_weights(args.weight_file)
 
-    loss = dice_coeff_loss()
-    model.compile(optimizer=tf.train.AdamOptimizer(1e-5), loss=loss)
-
     data_dir = pathlib.Path(args.data_dir)
 
     image_path = '**/test/images/*.png'

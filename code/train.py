@@ -96,7 +96,7 @@ if __name__ == '__main__':
     else:
         loss = args.loss
 
-    model.compile(optimizer=tf.train.AdamOptimizer(args.learning_rate),
+    model.compile(optimizer=tf.keras.optimizers.Adam(args.learning_rate),
                   loss=loss,
                   metrics=[tf.keras.metrics.Precision(), tf.keras.metrics.Recall()])
 
