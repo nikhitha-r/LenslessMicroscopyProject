@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 from model.unet import UNet
-from data.pipeline import input_pipeline, serving_input_pipeline
+from data.pipeline import serving_input_pipeline
 from utils.loss import *
 import constants
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     pred_path = data_dir.joinpath('test/predictions')
     pred_path.mkdir(exist_ok=True)
 
-    test_set = input_pipeline(dirname=args.data_dir,
+    test_set = serving_input_pipeline(dirname=args.data_dir,
                               imagepath=image_path,
                               annotationpath=annotation_path,
                               is_training=False,

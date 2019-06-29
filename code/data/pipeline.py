@@ -45,7 +45,6 @@ def input_pipeline(dirname,
 
     root_dir = pathlib.Path(dirname)
 
-    print(root_dir)
     # Create tf.data.Dataset containing the path strings
     # Important: We need to make sure that we only consider the images with
     # annotations available. We therefore loop over images/ txt files and look
@@ -64,7 +63,7 @@ def input_pipeline(dirname,
 
     # Now create new datasets that load images and annotations one-the-fly
     images = image_paths.map(
-        lambda x: load_image(x, num_channels=num_channels),
+        lambda x: load_image(x, resize=True, num_channels=num_channels),
         num_parallel_calls=num_parallel_calls
     )
     if annotationpath.endswith('.txt'):
@@ -74,7 +73,7 @@ def input_pipeline(dirname,
         )
     elif annotationpath.endswith('.png'):
         annotations = annotation_paths.map(
-            lambda x: load_image(x, num_channels=1),
+            lambda x: load_image(x, resize=True, num_channels=1),
             num_parallel_calls=num_parallel_calls
         )
     else:
@@ -166,8 +165,7 @@ def serving_input_pipeline(imagepath,
 
     return images, paths
 
-
-def load_image(path, num_channels=3):
+def load_image(path, resize=False, num_channels=3):
     """Load images.
 
     Args:
@@ -178,7 +176,9 @@ def load_image(path, num_channels=3):
         Tensor: with shape [height, width, num_channels]
     """
     image = tf.read_file(path)
-    image = tf.image.decode_image(image, channels=num_channels)
+    image = tf.image.decode_png(image, channels=num_channels)
+    if resize:
+        image = tf.image.resize_images(image, size=(1500, 2000))
     image.set_shape([None, None, num_channels])
     return tf.cast(image, tf.float32)
 
