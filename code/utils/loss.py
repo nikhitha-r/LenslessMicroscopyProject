@@ -17,5 +17,5 @@ def dice_coeff_loss():
 
 def bce_dice_loss():
     def bce_dice_loss_fixed(y_true, y_pred):
-        return tf.keras.losses.binary_crossentropy(y_true, y_pred) + dice_coeff_loss(y_true, y_pred)
+        return tf.keras.losses.binary_crossentropy(y_true, y_pred) + 1 - dice_coeff(y_true, y_pred)
     return bce_dice_loss_fixed
