@@ -85,8 +85,7 @@ if __name__ == '__main__':
                               annotationpath=annotation_path,
                               is_training=False,
                               use_augmentation=False,
-                              batch_size=1,
-                              is_testing=True).make_one_shot_iterator()
+                              batch_size=1).make_one_shot_iterator()
 
     for path in img_names:
         test_img, _ = test_set.get_next()

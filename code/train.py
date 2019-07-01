@@ -63,20 +63,26 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # data setup
+    resize=False
+    if args.model == 'unet':
+        resize = True
+
     train_data = input_pipeline(dirname=args.data_dir,
                                 imagepath='**/train/images/*.png',
                                 annotationpath='**/train/annotations/*.png',
                                 num_channels=args.channels,
                                 is_training=True,
                                 use_augmentation= not args.no_augment,
-                                batch_size=args.batch_size)
+                                batch_size=args.batch_size,
+                                resize=resize)
     
     eval_data = input_pipeline(dirname=args.data_dir,
                                imagepath='**/eval/images/*.png',
                                annotationpath='**/eval/annotations/*.png',
                                num_channels=args.channels,
                                is_training=False,
-                               use_augmentation=False)
+                               use_augmentation=False,
+                               resize=resize)
 
     # model setup
     if args.model in ('unet',):

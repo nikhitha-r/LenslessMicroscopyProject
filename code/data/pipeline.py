@@ -19,7 +19,7 @@ def input_pipeline(dirname,
                    padding=None,
                    num_parallel_calls=tf.data.experimental.AUTOTUNE,
                    use_caching=True,
-                   is_testing=False):
+                   resize=False):
     """Construct a data generator using tf.Dataset.
 
     Args:
@@ -61,10 +61,6 @@ def input_pipeline(dirname,
          if path.stem in [path2.stem for path2
                           in root_dir.glob(imagepath)]]
     )
-
-    resize = False
-    if not is_testing:
-        resize = True
 
     # Now create new datasets that load images and annotations one-the-fly
     images = image_paths.map(
