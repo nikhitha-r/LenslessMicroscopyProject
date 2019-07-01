@@ -18,7 +18,8 @@ def input_pipeline(dirname,
                    crop=True,
                    padding=None,
                    num_parallel_calls=tf.data.experimental.AUTOTUNE,
-                   use_caching=True):
+                   use_caching=True,
+                   is_testing=False):
     """Construct a data generator using tf.Dataset.
 
     Args:
@@ -61,9 +62,13 @@ def input_pipeline(dirname,
                           in root_dir.glob(imagepath)]]
     )
 
+    resize = False
+    if not is_testing:
+        resize = True
+
     # Now create new datasets that load images and annotations one-the-fly
     images = image_paths.map(
-        lambda x: load_image(x, resize=True, num_channels=num_channels),
+        lambda x: load_image(x, resize=resize, num_channels=num_channels),
         num_parallel_calls=num_parallel_calls
     )
     if annotationpath.endswith('.txt'):
@@ -73,7 +78,7 @@ def input_pipeline(dirname,
         )
     elif annotationpath.endswith('.png'):
         annotations = annotation_paths.map(
-            lambda x: load_image(x, resize=True, num_channels=1),
+            lambda x: load_image(x, resize=resize, num_channels=1),
             num_parallel_calls=num_parallel_calls
         )
     else:
