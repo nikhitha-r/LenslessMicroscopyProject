@@ -69,6 +69,9 @@ bw = logical(bw);
 %% split clumped cells
 [L,bw2] = splitCells(I,bw,r.minSizeSplit,r.maxSizeSplit,r.maxEcc,1,1);
 
+%Combine splitcells and mask
+bw2 = bw + bw2;
+
 %% visualize it
 if r.visualize
     s1 = subplot(2,2,1);
