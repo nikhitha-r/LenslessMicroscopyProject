@@ -8,7 +8,9 @@ import numpy as np
 import tensorflow as tf
 from data.pipeline import input_pipeline
 from model.unet import UNet
+from model.linknet import LinkNet
 from utils.loss import *
+from utils.metrics import iou_score
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -29,7 +31,7 @@ if __name__ == '__main__':
 
     # Model
     parser.add_argument('-m', '--model', type=str, required=True,
-                        choices=['unet'])
+                        choices=['unet', 'linknet'])
     parser.add_argument('-f', '--filters', type=int, nargs='+',
                         default=(64, 128, 256, 512, 1024),
                         help='the number of filters per block, the last filter'
@@ -62,6 +64,12 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    #define image sizes
+    if args.model in ('linknet'):
+        image_size=(256,256)
+    elif args.model in ('unet'):
+        image_size=(224,224)
+
     # data setup
     resize=False
     if args.model == 'unet':
@@ -74,7 +82,8 @@ if __name__ == '__main__':
                                 is_training=True,
                                 use_augmentation= not args.no_augment,
                                 batch_size=args.batch_size,
-                                resize=resize)
+                                resize=resize,
+                                image_size=image_size)
     
     eval_data = input_pipeline(dirname=args.data_dir,
                                imagepath='**/eval/images/*.png',
@@ -82,13 +91,16 @@ if __name__ == '__main__':
                                num_channels=args.channels,
                                is_training=False,
                                use_augmentation=False,
-                               resize=resize)
+                               resize=resize,
+                               image_size=image_size)
 
     # model setup
-    if args.model in ('unet',):
+    if args.model in ('unet'):
         model = UNet(input_shape=(224, 224, args.channels),
                      filters=args.filters,
                      dropout=args.drop_prob).build_unet_model()
+    elif args.model in ('linknet'):
+        model = LinkNet().build_linknet_model()
     else:
         raise NotImplementedError
 
@@ -102,9 +114,14 @@ if __name__ == '__main__':
     else:
         loss = args.loss
 
-    model.compile(optimizer=tf.keras.optimizers.Adam(args.learning_rate),
+    if args.model in ('unet'):
+        model.compile(optimizer=tf.keras.optimizers.Adam(args.learning_rate),
                   loss=loss,
                   metrics=[tf.keras.metrics.Precision(), tf.keras.metrics.Recall()])
+    else:
+        model.compile(optimizer=tf.keras.optimizers.Adam(args.learning_rate),
+                      loss=loss,
+                      metrics=[iou_score, tf.keras.metrics.Precision(), tf.keras.metrics.Recall()])
 
     cptp_op = tf.keras.callbacks.ModelCheckpoint(
         filepath=os.path.join(args.save_dir, 'cpts'), save_best_only=True,

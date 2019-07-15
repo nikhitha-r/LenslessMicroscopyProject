@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 from model.unet import UNet
+from model.linknet import LinkNet
 from data.pipeline import input_pipeline
 from utils.loss import *
 import constants
@@ -57,14 +58,19 @@ if __name__ == '__main__':
     # data in/out
     parser.add_argument('-i', '--data_dir', type=str, required=True,
                         help='Dataset path.')
-    parser.add_argument('-m', '--model', default='unet', choices=['unet'])
+    parser.add_argument('-m', '--model', default='unet', choices=['unet', 'linknet'], required=True)
     parser.add_argument('-w', '--weight_file', type=str, required=False,
                         help='Load model weights from this dir.')
 
     args = parser.parse_args()
 
     # model setup
-    model = UNet().build_unet_model()
+    if args.model in ('unet'):
+        model = UNet().build_unet_model()
+        shape = (224,224,3)
+    else:
+        model = LinkNet().build_linknet_model()
+        shape = (256, 256, 3)
 
     if args.weight_file is not None:
         model.load_weights(args.weight_file)
@@ -105,7 +111,7 @@ if __name__ == '__main__':
                 img_shape = constants.Huh_pos0
             else:
                 raise Exception("Wrong file path")
-            pred, _ = predict_full_image(model, test_img, img_shape=img_shape)
+            pred, _ = predict_full_image(model, test_img, img_shape=img_shape, shape=shape)
             np.save(str(pred_path.joinpath(path)), pred)
             cv2.imwrite(str(pred_path.joinpath(path + '.png')), pred * 255)
             print(str(pred_path.joinpath(path)))
